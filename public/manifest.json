@@ -1,0 +1,8 @@
+{
+  "short_name": "Recipe Vibe",
+  "name": "Recipe Vibe Application",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff"
+}
