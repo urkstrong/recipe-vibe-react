@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db } from '../services/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
 
 const useRecipes = (userId) => {
     const [recipes, setRecipes] = useState([]);
@@ -74,7 +74,16 @@ const useRecipes = (userId) => {
         await deleteDoc(doc(db, docPath));
     };
 
-    return { recipes, loading, error, addRecipe, deleteRecipe };
+    const updateRecipe = async (id, updatedData) => {
+        if (!userId) {
+            throw new Error("User not authenticated");
+        }
+
+        const docPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/users/${userId}/recipes/${id}`;
+        await updateDoc(doc(db, docPath), updatedData);
+    };
+
+    return { recipes, loading, error, addRecipe, deleteRecipe, updateRecipe };
 };
 
 export default useRecipes;

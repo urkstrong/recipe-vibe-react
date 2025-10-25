@@ -376,6 +376,17 @@ button:active {
   border-color: rgba(220, 38, 38, 0.5);
 }
 
+/* Recipe card edit button */
+.recipe-card .edit-btn {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.recipe-card .edit-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
 /* Tab specific styles */
 .tab-content {
   animation: fadeIn 0.3s ease-in-out;

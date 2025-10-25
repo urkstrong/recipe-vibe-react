@@ -7,7 +7,7 @@ import EmptyState from '../UI/EmptyState';
 
 const RecipeList = () => {
     const { user } = useAuth();
-    const { recipes, loading, error, deleteRecipe } = useRecipes(user?.uid);
+    const { recipes, loading, error, deleteRecipe, updateRecipe } = useRecipes(user?.uid);
 
     console.log('RecipeList render - User:', user?.uid, 'Recipes:', recipes, 'Loading:', loading, 'Error:', error);
 
@@ -41,7 +41,7 @@ const RecipeList = () => {
     return (
         <div className="recipe-grid">
             {recipes.map(recipe => (
-                <RecipeCard key={recipe.id} recipe={recipe} onDelete={deleteRecipe} />
+                <RecipeCard key={recipe.id} recipe={recipe} onDelete={deleteRecipe} onUpdate={updateRecipe} />
             ))}
         </div>
     );
