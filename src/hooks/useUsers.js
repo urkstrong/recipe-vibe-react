@@ -11,33 +11,25 @@ const useUsers = (currentUserId) => {
     // Fetch all users
     useEffect(() => {
         if (!currentUserId) {
-            console.log('useUsers: No currentUserId provided');
             setUsers([]);
             setLoading(false);
             return;
         }
 
         const usersPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/users`;
-        console.log('useUsers: Fetching from path:', usersPath);
         const usersCol = collection(db, usersPath);
 
         const unsubscribe = onSnapshot(usersCol, (snapshot) => {
-            console.log('useUsers: Snapshot received, size:', snapshot.size);
             setLoading(false);
             setError(null);
             
             const fetchedUsers = snapshot.docs
-                .map(doc => {
-                    const data = { id: doc.id, ...doc.data() };
-                    console.log('useUsers: User data:', data);
-                    return data;
-                })
+                .map(doc => ({ id: doc.id, ...doc.data() }))
                 .filter(user => user.id !== currentUserId);
             
-            console.log('useUsers: Filtered users (excluding current):', fetchedUsers);
             setUsers(fetchedUsers);
         }, (error) => {
-            console.error('useUsers: Error fetching users:', error);
+            console.error('Error fetching users:', error);
             setLoading(false);
             setError(error);
         });
@@ -53,15 +45,13 @@ const useUsers = (currentUserId) => {
         }
 
         const followingPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/users/${currentUserId}/following`;
-        console.log('useUsers: Fetching following from:', followingPath);
         const followingCol = collection(db, followingPath);
 
         const unsubscribe = onSnapshot(followingCol, (snapshot) => {
             const followingIds = snapshot.docs.map(doc => doc.id);
-            console.log('useUsers: Following IDs:', followingIds);
             setFollowing(followingIds);
         }, (error) => {
-            console.error('useUsers: Error fetching following:', error);
+            console.error('Error fetching following:', error);
         });
 
         return () => unsubscribe();
@@ -71,7 +61,6 @@ const useUsers = (currentUserId) => {
         if (!currentUserId) throw new Error("User not authenticated");
 
         const followingPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/users/${currentUserId}/following/${targetUserId}`;
-        console.log('useUsers: Following user at:', followingPath);
         await setDoc(doc(db, followingPath), {
             userId: targetUserId,
             displayName: targetUserData.displayName,
@@ -85,7 +74,6 @@ const useUsers = (currentUserId) => {
         if (!currentUserId) throw new Error("User not authenticated");
 
         const followingPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/users/${currentUserId}/following/${targetUserId}`;
-        console.log('useUsers: Unfollowing user at:', followingPath);
         await deleteDoc(doc(db, followingPath));
     };
 

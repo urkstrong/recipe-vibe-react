@@ -9,8 +9,6 @@ import GoogleSignIn from '../Auth/GoogleSignIn';
 const MainContent = () => {
     const { user } = useAuth();
 
-    console.log('MainContent render - User:', user);
-
     if (!user) {
         return (
             <div className="min-h-screen w-full flex items-center justify-center p-16">

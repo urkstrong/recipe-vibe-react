@@ -9,12 +9,6 @@ const UsersList = () => {
     const { users, following, loading, error, followUser, unfollowUser } = useUsers(user?.uid);
     const [filter, setFilter] = useState('all'); // 'all' or 'following'
 
-    console.log('UsersList - Current User:', user?.uid);
-    console.log('UsersList - All Users:', users);
-    console.log('UsersList - Following:', following);
-    console.log('UsersList - Loading:', loading);
-    console.log('UsersList - Error:', error);
-
     const filteredUsers = filter === 'following' 
         ? users.filter(u => following.includes(u.id))
         : users;

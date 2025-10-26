@@ -197,9 +197,6 @@ export const cleanupOldPhotos = async (userId, keepCount = 3) => {
  */
 export const recalculateProjectStorage = async () => {
   try {
-    console.log('Recalculating project storage...');
-    
-    // Get all users from Firestore instead of listing Storage
     const usersPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/users`;
     const usersSnapshot = await getDocs(collection(db, usersPath));
     
@@ -207,7 +204,6 @@ export const recalculateProjectStorage = async () => {
     let totalFiles = 0;
     let userCount = 0;
     
-    // Iterate through each user
     for (const userDoc of usersSnapshot.docs) {
       const userId = userDoc.id;
       
@@ -216,7 +212,6 @@ export const recalculateProjectStorage = async () => {
         const fileList = await listAll(userPhotosRef);
         
         if (fileList.items.length > 0) {
-          // Get metadata for all files in this user's folder
           const metadataPromises = fileList.items.map(item => getMetadata(item));
           const metadataResults = await Promise.all(metadataPromises);
           
@@ -228,14 +223,10 @@ export const recalculateProjectStorage = async () => {
           userCount++;
         }
       } catch (error) {
-        // User might not have any photos, skip
-        console.log(`No photos found for user ${userId}`);
+        // User might not have any photos, skip silently
       }
     }
     
-    console.log(`Found ${totalFiles} files across ${userCount} users, totaling ${formatBytes(totalBytes)}`);
-    
-    // Update Firestore with actual total
     const storageDocPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/metadata/storage`;
     await setDoc(doc(db, storageDocPath), {
       totalBytes: totalBytes,
@@ -243,8 +234,6 @@ export const recalculateProjectStorage = async () => {
       lastUpdated: new Date(),
       lastRecalculated: new Date(),
     });
-    
-    console.log('Project storage recalculated successfully!');
     
     return {
       totalBytes,
