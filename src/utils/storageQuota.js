@@ -107,7 +107,7 @@ export const checkUploadQuota = async (userId, fileSize) => {
   }
   
   // Get current user usage
-  const { totalBytes, fileCount } = await getUserStorageUsage(userId);
+  const { totalBytes } = await getUserStorageUsage(userId);
   
   // Check per-user limit
   if (totalBytes + fileSize > STORAGE_LIMITS.PER_USER_LIMIT) {
@@ -215,11 +215,12 @@ export const recalculateProjectStorage = async () => {
           const metadataPromises = fileList.items.map(item => getMetadata(item));
           const metadataResults = await Promise.all(metadataPromises);
           
-          metadataResults.forEach(metadata => {
-            totalBytes += metadata.size;
-            totalFiles++;
-          });
+          // Calculate bytes and files for this user, then add to totals
+          const userBytes = metadataResults.reduce((sum, metadata) => sum + metadata.size, 0);
+          const userFiles = metadataResults.length;
           
+          totalBytes += userBytes;
+          totalFiles += userFiles;
           userCount++;
         }
       } catch (error) {
@@ -246,7 +247,7 @@ export const recalculateProjectStorage = async () => {
   }
 };
 
-export default {
+const storageQuotaExports = {
   getUserStorageUsage,
   checkUploadQuota,
   formatBytes,
@@ -254,3 +255,5 @@ export default {
   recalculateProjectStorage,
   STORAGE_LIMITS,
 };
+
+export default storageQuotaExports;
