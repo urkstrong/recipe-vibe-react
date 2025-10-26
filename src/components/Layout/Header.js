@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { updateProfile } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../services/firebase';
 import useUsers from '../../hooks/useUsers';
 import GoogleSignIn from '../Auth/GoogleSignIn';
 
@@ -10,7 +12,9 @@ const Header = () => {
     const [isEditingName, setIsEditingName] = useState(false);
     const [displayName, setDisplayName] = useState(user?.displayName || '');
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const [error, setError] = useState('');
+    const fileInputRef = useRef(null);
 
     const handleSaveName = async () => {
         if (!displayName.trim()) {
@@ -54,6 +58,90 @@ const Header = () => {
         setIsEditingName(true);
     };
 
+    const handlePhotoUpload = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Check for HEIC/HEIF files (iOS format)
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+            setError('HEIC format not supported. Please convert to JPG/PNG first or use your phone\'s camera settings to save as JPG.');
+            return;
+        }
+
+        // Validate file type - be more specific about supported formats
+        const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!supportedTypes.includes(file.type.toLowerCase())) {
+            setError('Please select a JPG, PNG, GIF, or WebP image');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setError('Image must be less than 5MB');
+            return;
+        }
+
+        setIsUploadingPhoto(true);
+        setError('');
+
+        try {
+            // Create a unique filename with proper extension
+            const timestamp = Date.now();
+            const fileExtension = file.type.split('/')[1]; // Get extension from MIME type
+            const fileName = `profile-photos/${user.uid}/${timestamp}.${fileExtension}`;
+            const storageRef = ref(storage, fileName);
+
+            // Set metadata for better handling
+            const metadata = {
+                contentType: file.type,
+                customMetadata: {
+                    uploadedBy: user.uid,
+                    uploadedAt: new Date().toISOString()
+                }
+            };
+
+            // Upload the file with metadata
+            await uploadBytes(storageRef, file, metadata);
+
+            // Get the download URL
+            const photoURL = await getDownloadURL(storageRef);
+
+            // Update Firebase Auth profile
+            await updateProfile(user, {
+                photoURL: photoURL
+            });
+
+            // Update Firestore and propagate to followers
+            await updateUserProfile(user.uid, {
+                displayName: user.displayName,
+                email: user.email,
+                photoURL: photoURL,
+            });
+
+            console.log('Profile photo updated successfully');
+        } catch (err) {
+            console.error('Error uploading photo:', err);
+            if (err.code === 'storage/unauthorized') {
+                setError('Permission denied. Please check storage rules.');
+            } else if (err.code === 'storage/canceled') {
+                setError('Upload canceled');
+            } else if (err.code === 'storage/unknown') {
+                setError('Upload failed. Please try again.');
+            } else {
+                setError('Failed to upload photo');
+            }
+        } finally {
+            setIsUploadingPhoto(false);
+        }
+    };
+
+    const handlePhotoClick = () => {
+        if (!isUploadingPhoto) {
+            fileInputRef.current?.click();
+        }
+    };
+
     return (
         <header className="bg-slate-900/95 backdrop-blur-md p-4 text-white shadow-lg border-b border-slate-700/50">
             <div className="container mx-auto flex justify-between items-center">
@@ -62,6 +150,39 @@ const Header = () => {
                 </h1>
                 
                 <div className="flex items-center space-x-4">
+                    {/* Profile Photo Section */}
+                    <div className="profile-photo-section">
+                        <div className="profile-photo-wrapper" onClick={handlePhotoClick}>
+                            {isUploadingPhoto ? (
+                                <div className="profile-photo-loading">
+                                    <svg className="spinner-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="10" strokeWidth="3" strokeOpacity="0.25"/>
+                                        <path d="M12 2a10 10 0 0 1 10 10" strokeWidth="3" strokeLinecap="round"/>
+                                    </svg>
+                                </div>
+                            ) : user.photoURL ? (
+                                <img src={user.photoURL} alt={user.displayName} className="profile-photo-img" />
+                            ) : (
+                                <div className="profile-photo-placeholder">
+                                    {user.displayName?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                            )}
+                            <div className="profile-photo-overlay">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                    <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                            onChange={handlePhotoUpload}
+                            style={{ display: 'none' }}
+                        />
+                    </div>
+
                     <div className="header-user-section">
                         {isEditingName ? (
                             <div className="name-edit-wrapper">
@@ -135,6 +256,19 @@ const Header = () => {
                     <GoogleSignIn />
                 </div>
             </div>
+            {error && !isEditingName && (
+                <div className="header-error-toast">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                    </svg>
+                    <span>{error}</span>
+                    <button onClick={() => setError('')}>
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </button>
+                </div>
+            )}
         </header>
     );
 };

@@ -8,7 +8,18 @@ import UserProfile from './components/User/UserProfile';
 import './App.css';
 
 function AppContent() {
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
+    
+    if (loading) {
+        return (
+            <div className="App min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="loader mx-auto mb-4"></div>
+                    <p className="text-slate-400 text-lg">Loading Recipe Vibe...</p>
+                </div>
+            </div>
+        );
+    }
     
     return (
         <div className="App min-h-screen bg-gray-50">

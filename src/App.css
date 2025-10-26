@@ -1059,18 +1059,147 @@ button:active {
   transform: translateY(-2px);
 }
 
-/* Responsive Design */
+/* ===== Profile Photo Section ===== */
+
+.profile-photo-section {
+  position: relative;
+}
+
+.profile-photo-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(59, 130, 246, 0.4);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.profile-photo-wrapper:hover {
+  border-color: rgba(59, 130, 246, 0.7);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.profile-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.profile-photo-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.profile-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+}
+
+.profile-photo-wrapper:hover .profile-photo-overlay {
+  opacity: 1;
+}
+
+/* Error Toast for Photo Upload */
+.header-error-toast {
+  position: fixed;
+  top: 5rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.95), rgba(185, 28, 28, 0.95));
+  border: 1.5px solid rgba(248, 113, 113, 0.5);
+  border-radius: 0.875rem;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+  animation: slideInToast 0.3s ease-out;
+  z-index: 1000;
+  max-width: 400px;
+}
+
+@keyframes slideInToast {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.header-error-toast svg:first-child {
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.header-error-toast button {
+  margin-left: auto;
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.header-error-toast button:hover {
+  opacity: 1;
+  transform: none;
+}
+
+/* Update header spacing to accommodate photo */
+header .container > div {
+  gap: 1rem;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .users-grid {
-    grid-template-columns: 1fr;
+  .profile-photo-wrapper {
+    width: 40px;
+    height: 40px;
   }
   
-  .user-profile-header {
-    flex-direction: column;
-    text-align: center;
+  .profile-photo-placeholder {
+    font-size: 1rem;
   }
   
-  .user-profile-stats {
-    justify-content: center;
+  .header-error-toast {
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
   }
 }
