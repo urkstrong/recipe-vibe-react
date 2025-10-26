@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { updateProfile } from 'firebase/auth';
+import useUsers from '../../hooks/useUsers';
 import GoogleSignIn from '../Auth/GoogleSignIn';
 
 const Header = () => {
     const { user } = useAuth();
+    const { updateUserProfile } = useUsers(user?.uid);
     const [isEditingName, setIsEditingName] = useState(false);
     const [displayName, setDisplayName] = useState(user?.displayName || '');
     const [isUpdating, setIsUpdating] = useState(false);
@@ -20,9 +22,18 @@ const Header = () => {
         setError('');
 
         try {
+            // Update Firebase Auth profile
             await updateProfile(user, {
                 displayName: displayName.trim()
             });
+            
+            // Update Firestore and propagate to followers
+            await updateUserProfile(user.uid, {
+                displayName: displayName.trim(),
+                email: user.email,
+                photoURL: user.photoURL,
+            });
+            
             setIsEditingName(false);
         } catch (err) {
             console.error('Error updating display name:', err);

@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import Header from './components/Layout/Header';
 import MainContent from './components/Layout/MainContent';
 import { useAuth } from './context/AuthContext';
+import UserProfile from './components/User/UserProfile';
 import './App.css';
 
 function AppContent() {
@@ -14,6 +15,7 @@ function AppContent() {
             {user && <Header />}
             <Routes>
                 <Route path="/" element={<MainContent />} />
+                <Route path="/user/:userId" element={<UserProfile />} />
             </Routes>
         </div>
     );
