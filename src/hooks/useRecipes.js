@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db } from '../services/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc, getDoc } from 'firebase/firestore';
+import { deleteRecipeImage } from '../utils/storageQuota';
 
 const useRecipes = (userId) => {
     const [recipes, setRecipes] = useState([]);
@@ -71,6 +72,24 @@ const useRecipes = (userId) => {
         }
 
         const docPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/users/${userId}/recipes/${id}`;
+        
+        // Get recipe data to find image URL
+        try {
+            const recipeDoc = await getDoc(doc(db, docPath));
+            if (recipeDoc.exists()) {
+                const recipeData = recipeDoc.data();
+                
+                // Delete image from storage if it exists
+                if (recipeData.imageUrl) {
+                    await deleteRecipeImage(recipeData.imageUrl);
+                }
+            }
+        } catch (error) {
+            console.error('Error deleting recipe image:', error);
+            // Continue with recipe deletion even if image deletion fails
+        }
+
+        // Delete recipe document
         await deleteDoc(doc(db, docPath));
     };
 

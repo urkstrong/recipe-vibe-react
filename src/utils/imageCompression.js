@@ -45,3 +45,17 @@ export const compressProfilePhoto = async (file) => {
     initialQuality: 0.85,
   });
 };
+
+/**
+ * Compress recipe image with higher quality
+ * @param {File} file - The image file
+ * @returns {Promise<File>} Compressed and validated image
+ */
+export const compressRecipeImage = async (file) => {
+  // Recipe images can be larger and higher quality than profile photos
+  return compressImage(file, {
+    maxSizeMB: 1.0,           // 1MB max for recipe images
+    maxWidthOrHeight: 1920,   // Full HD resolution
+    initialQuality: 0.9,      // Higher quality for food photos
+  });
+};

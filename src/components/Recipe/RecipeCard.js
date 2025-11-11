@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const RecipeCard = ({ recipe, onDelete, onUpdate }) => {
-    const { id, name, ingredients, instructions } = recipe;
+    const { id, name, ingredients, instructions, imageUrl } = recipe;
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState(name);
@@ -75,6 +75,21 @@ const RecipeCard = ({ recipe, onDelete, onUpdate }) => {
     return (
         <>
             <div className="recipe-card group">
+                {imageUrl && (
+                    <div style={{ marginBottom: '1rem', borderRadius: '0.75rem', overflow: 'hidden' }}>
+                        <img 
+                            src={imageUrl} 
+                            alt={name}
+                            style={{
+                                width: '100%',
+                                height: '200px',
+                                objectFit: 'cover',
+                                display: 'block'
+                            }}
+                        />
+                    </div>
+                )}
+                
                 <div className="flex justify-between items-start mb-4">
                     {isEditing ? (
                         <input
