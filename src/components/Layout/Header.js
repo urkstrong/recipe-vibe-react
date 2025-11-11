@@ -7,6 +7,7 @@ import useUsers from '../../hooks/useUsers';
 import GoogleSignIn from '../Auth/GoogleSignIn';
 import { checkUploadQuota, cleanupOldPhotos, updateProjectStorage } from '../../utils/storageQuota';
 import StorageIndicator from '../User/StorageIndicator';
+import { compressProfilePhoto } from '../../utils/imageCompression';
 
 const Header = () => {
     const { user } = useAuth();
@@ -16,6 +17,7 @@ const Header = () => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     const [error, setError] = useState('');
+    const [compressionProgress, setCompressionProgress] = useState(0);
     const fileInputRef = useRef(null);
 
     const handleSaveName = async () => {
@@ -78,54 +80,73 @@ const Header = () => {
             return;
         }
 
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            setError('Image must be less than 5MB');
+        // Validate file size before compression (max 10MB original)
+        if (file.size > 10 * 1024 * 1024) {
+            setError('Original image must be less than 10MB');
             return;
         }
 
         setIsUploadingPhoto(true);
         setError('');
+        setCompressionProgress(0);
 
         try {
-            // Check quota before uploading (now includes project-wide check)
-            const quotaCheck = await checkUploadQuota(user.uid, file.size);
+            // Compress the image first
+            console.log('Compressing image...');
+            setCompressionProgress(25);
+            const compressedFile = await compressProfilePhoto(file);
+            setCompressionProgress(50);
+
+            // Check quota with compressed file size
+            const quotaCheck = await checkUploadQuota(user.uid, compressedFile.size);
             
             if (!quotaCheck.canUpload) {
                 setError(quotaCheck.reason);
                 setIsUploadingPhoto(false);
+                setCompressionProgress(0);
                 return;
             }
 
+            setCompressionProgress(60);
+
             // Cleanup old photos before uploading new one
+            // Pass 0 to delete ALL previous photos (only keep the new one about to be uploaded)
             try {
-                const cleanup = await cleanupOldPhotos(user.uid, 5);
+                const cleanup = await cleanupOldPhotos(user.uid, 0);
                 console.log(`Cleaned up ${cleanup.deleted} files, freed ${cleanup.bytesFreed} bytes`);
             } catch (cleanupError) {
                 console.warn('Failed to cleanup old photos:', cleanupError);
             }
 
+            setCompressionProgress(70);
+
             // Create a unique filename with proper extension
             const timestamp = Date.now();
-            const fileExtension = file.type.split('/')[1];
+            const fileExtension = compressedFile.type.split('/')[1];
             const fileNamePath = `profile-photos/${user.uid}/${timestamp}.${fileExtension}`;
             const storageRef = ref(storage, fileNamePath);
 
             // Set metadata for better handling
             const metadata = {
-                contentType: file.type,
+                contentType: compressedFile.type,
                 customMetadata: {
                     uploadedBy: user.uid,
                     uploadedAt: new Date().toISOString(),
-                    fileSize: file.size.toString(),
+                    fileSize: compressedFile.size.toString(),
+                    originalSize: file.size.toString(),
+                    compressionRatio: ((1 - compressedFile.size / file.size) * 100).toFixed(1),
                 }
             };
 
-            // Upload the file with metadata
-            await uploadBytes(storageRef, file, metadata);
+            setCompressionProgress(80);
+
+            // Upload the compressed file with metadata
+            await uploadBytes(storageRef, compressedFile, metadata);
             
-            // ✅ IMPORTANT: Update project storage counter after successful upload
-            await updateProjectStorage(file.size);
+            setCompressionProgress(90);
+
+            // Update project storage counter with compressed size
+            await updateProjectStorage(compressedFile.size);
 
             // Get the download URL
             const photoURL = await getDownloadURL(storageRef);
@@ -142,11 +163,14 @@ const Header = () => {
                 photoURL: photoURL,
             });
 
+            setCompressionProgress(100);
+
         } catch (err) {
             console.error('Error uploading photo:', err);
             setError('Failed to upload photo. Please try again.');
         } finally {
             setIsUploadingPhoto(false);
+            setTimeout(() => setCompressionProgress(0), 500);
         }
     };
 
@@ -172,6 +196,25 @@ const Header = () => {
                         <div className="profile-photo-wrapper" onClick={handlePhotoClick}>
                             {isUploadingPhoto ? (
                                 <div className="profile-photo-loading">
+                                    {compressionProgress > 0 && (
+                                        <div className="compression-progress" style={{ 
+                                            position: 'absolute', 
+                                            bottom: '2px', 
+                                            left: '2px', 
+                                            right: '2px',
+                                            height: '3px',
+                                            backgroundColor: 'rgba(255,255,255,0.2)',
+                                            borderRadius: '2px',
+                                            overflow: 'hidden'
+                                        }}>
+                                            <div style={{
+                                                width: `${compressionProgress}%`,
+                                                height: '100%',
+                                                backgroundColor: '#3b82f6',
+                                                transition: 'width 0.3s ease'
+                                            }}></div>
+                                        </div>
+                                    )}
                                     <svg className="spinner-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                         <circle cx="12" cy="12" r="10" strokeWidth="3" strokeOpacity="0.25"></circle>
                                         <path d="M12 2a10 10 0 0 1 10 10" strokeWidth="3" strokeLinecap="round"></path>

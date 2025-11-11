@@ -9,6 +9,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "browser-image-compression": "^2.0.2",
     "firebase": "^11.10.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

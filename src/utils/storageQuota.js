@@ -6,7 +6,8 @@ import { doc, getDoc, setDoc, runTransaction, collection, getDocs } from 'fireba
 export const STORAGE_LIMITS = {
   FREE_TIER_TOTAL: 5 * 1024 * 1024 * 1024, // 5GB total for free tier
   PER_USER_LIMIT: 100 * 1024 * 1024,       // 100MB per user
-  PER_FILE_LIMIT: 5 * 1024 * 1024,         // 5MB per file
+  PER_FILE_LIMIT: 5 * 1024 * 1024,         // 5MB per file (before compression)
+  PER_FILE_COMPRESSED: 500 * 1024,         // 500KB target after compression
 };
 
 /**
@@ -145,7 +146,7 @@ export const formatBytes = (bytes, decimals = 2) => {
 /**
  * Delete old photos to free up space (keep only the most recent)
  * @param {string} userId
- * @param {number} keepCount - Number of recent photos to keep
+ * @param {number} keepCount - Number of recent photos to keep (0 = delete all)
  */
 export const cleanupOldPhotos = async (userId, keepCount = 3) => {
   try {
@@ -170,7 +171,8 @@ export const cleanupOldPhotos = async (userId, keepCount = 3) => {
     );
     
     // Delete old files and track bytes freed
-    const filesToDelete = filesWithMetadata.slice(keepCount);
+    // If keepCount is 0, delete all existing files
+    const filesToDelete = keepCount === 0 ? filesWithMetadata : filesWithMetadata.slice(keepCount);
     let bytesFreed = 0;
     
     for (const file of filesToDelete) {
