@@ -19,16 +19,23 @@ const UserProfile = () => {
     const isFollowing = following.includes(userId);
     const isOwnProfile = currentUser?.uid === userId;
 
+    console.log('UserProfile - userId:', userId, 'recipes:', recipes, 'loading:', recipesLoading);
+
     useEffect(() => {
         const fetchUserProfile = async () => {
             if (!userId) return;
             
             try {
                 const userPath = `/artifacts/${process.env.REACT_APP_FIREBASE_APP_ID}/users/${userId}`;
+                console.log('Fetching user profile from:', userPath);
                 const userDoc = await getDoc(doc(db, userPath));
                 
                 if (userDoc.exists()) {
-                    setProfileUser({ id: userDoc.id, ...userDoc.data() });
+                    const userData = { id: userDoc.id, ...userDoc.data() };
+                    console.log('User profile found:', userData);
+                    setProfileUser(userData);
+                } else {
+                    console.log('User profile not found');
                 }
             } catch (error) {
                 console.error('Error fetching user profile:', error);
