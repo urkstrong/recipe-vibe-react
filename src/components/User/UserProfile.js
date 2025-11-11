@@ -106,6 +106,9 @@ const UserProfile = () => {
                 <div className="user-profile-info">
                     <h1>{profileUser.displayName || 'Anonymous User'}</h1>
                     <p>{profileUser.email}</p>
+                    {isOwnProfile && (
+                        <p className="text-sm text-blue-400 italic mt-2">This is your profile</p>
+                    )}
                     <div className="user-profile-stats">
                         <span className="stat-item">
                             <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16" className="stat-icon">
@@ -138,7 +141,9 @@ const UserProfile = () => {
                 
                 {recipes.length === 0 ? (
                     <div className="text-center p-12">
-                        <p className="text-slate-400">No recipes yet</p>
+                        <p className="text-slate-400">
+                            {isOwnProfile ? 'You haven\'t added any recipes yet' : 'No recipes yet'}
+                        </p>
                     </div>
                 ) : (
                     <div className="recipe-grid">
@@ -149,9 +154,7 @@ const UserProfile = () => {
                                 showFavorite={true}
                                 recipeOwnerId={userId}
                                 ownerName={profileUser.displayName}
-                                readOnly={!isOwnProfile}
-                                onDelete={isOwnProfile ? undefined : undefined}
-                                onUpdate={isOwnProfile ? undefined : undefined}
+                                readOnly={false}
                             />
                         ))}
                     </div>

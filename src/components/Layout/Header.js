@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -11,6 +12,7 @@ import { compressProfilePhoto } from '../../utils/imageCompression';
 
 const Header = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const { updateUserProfile } = useUsers(user?.uid);
     const [isEditingName, setIsEditingName] = useState(false);
     const [displayName, setDisplayName] = useState(user?.displayName || '');
@@ -300,16 +302,27 @@ const Header = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="name-display-wrapper" onClick={handleStartEdit}>
-                                <div className="user-info">
-                                    <p className="user-display-name">{user.displayName || 'User'}</p>
-                                    <p className="user-email">{user.email}</p>
+                            <div className="flex items-center gap-3">
+                                <div className="name-display-wrapper" onClick={handleStartEdit}>
+                                    <div className="user-info">
+                                        <p className="user-display-name">{user.displayName || 'User'}</p>
+                                        <p className="user-email">{user.email}</p>
+                                    </div>
+                                    <div className="edit-name-trigger">
+                                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708L10.5 8.207l-3-3L12.146.146ZM11.207 9l-3-3L2.5 11.707V14.5a.5.5 0 0 0 .5.5h2.793L11.207 9ZM1 11.5a.5.5 0 0 1 .5-.5H2v-.793L8.146 4.561l3 3L5 13.707V14.5a1.5 1.5 0 0 1-1.5 1.5H1.5A1.5 1.5 0 0 1 0 14.5v-3Z"></path>
+                                        </svg>
+                                    </div>
                                 </div>
-                                <div className="edit-name-trigger">
-                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708L10.5 8.207l-3-3L12.146.146ZM11.207 9l-3-3L2.5 11.707V14.5a.5.5 0 0 0 .5.5h2.793L11.207 9ZM1 11.5a.5.5 0 0 1 .5-.5H2v-.793L8.146 4.561l3 3L5 13.707V14.5a1.5 1.5 0 0 1-1.5 1.5H1.5A1.5 1.5 0 0 1 0 14.5v-3Z"></path>
+                                <button
+                                    onClick={() => navigate(`/user/${user.uid}`)}
+                                    className="view-profile-btn"
+                                    title="View your profile"
+                                >
+                                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/>
                                     </svg>
-                                </div>
+                                </button>
                             </div>
                         )}
                     </div>

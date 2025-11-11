@@ -25,6 +25,9 @@ const RecipeCard = ({ recipe, onDelete, onUpdate, showFavorite = true, recipeOwn
     const instructionsTextareaRef = useRef(null);
     const editFileInputRef = useRef(null);
 
+    const isOwner = user?.uid === recipeOwnerId;
+    const canEdit = isOwner && !readOnly;
+
     const handleDelete = () => {
         setShowDeleteConfirm(true);
     };
@@ -225,7 +228,7 @@ const RecipeCard = ({ recipe, onDelete, onUpdate, showFavorite = true, recipeOwn
 
     return (
         <>
-            <div className={`recipe-card group ${readOnly ? 'view-only' : ''}`}>
+            <div className={`recipe-card group ${!canEdit ? 'view-only' : ''}`}>
                 {/* Image Section with Favorite Button */}
                 {isEditing ? (
                     <div style={{ marginBottom: '1rem' }}>
@@ -396,13 +399,13 @@ const RecipeCard = ({ recipe, onDelete, onUpdate, showFavorite = true, recipeOwn
                             <h3 className="text-xl font-bold text-white truncate">
                                 {name}
                             </h3>
-                            {readOnly && ownerName && (
+                            {!isOwner && ownerName && (
                                 <p className="text-xs text-slate-400 italic mt-1">by {ownerName}</p>
                             )}
                         </div>
                     )}
-                    <div className={`flex space-x-2 ${readOnly ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-all duration-200`} style={{ alignSelf: 'flex-start' }}>
-                        {!readOnly && (
+                    <div className={`flex space-x-2 ${canEdit ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'} transition-all duration-200`} style={{ alignSelf: 'flex-start' }}>
+                        {canEdit && (
                             <>
                                 {isEditing ? (
                                     <>
