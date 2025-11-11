@@ -112,6 +112,20 @@ const UserProfile = () => {
                     <div className="recipe-grid">
                         {recipes.map(recipe => (
                             <div key={recipe.id} className="recipe-card view-only">
+                                {recipe.imageUrl && (
+                                    <div style={{ marginBottom: '1rem', borderRadius: '0.75rem', overflow: 'hidden' }}>
+                                        <img 
+                                            src={recipe.imageUrl} 
+                                            alt={recipe.name}
+                                            style={{
+                                                width: '100%',
+                                                height: '200px',
+                                                objectFit: 'cover',
+                                                display: 'block'
+                                            }}
+                                        />
+                                    </div>
+                                )}
                                 <h3 className="text-xl font-bold text-white mb-4">{recipe.name}</h3>
                                 <div className="mb-4">
                                     <h4 className="text-xs font-semibold text-blue-400 mb-2 uppercase tracking-wide">Ingredients</h4>
