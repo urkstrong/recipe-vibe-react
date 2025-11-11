@@ -1012,13 +1012,84 @@ button:active {
   margin: 0 0 1rem 0;
 }
 
+/* User Profile Stats */
 .user-profile-stats {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   color: #cbd5e1;
   font-size: 0.9375rem;
+  margin-top: 1rem;
 }
 
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1.125rem;
+  background: rgba(51, 65, 85, 0.4);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  background: rgba(51, 65, 85, 0.6);
+  border-color: rgba(71, 85, 105, 0.5);
+  transform: translateY(-1px);
+}
+
+.stat-icon {
+  color: #60a5fa;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-item span {
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.user-profile-stats {
+  display: flex;
+  gap: 1.5rem;
+  color: #cbd5e1;
+  font-size: 0.9375rem;
+  margin-top: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1.125rem;
+  background: rgba(51, 65, 85, 0.4);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  background: rgba(51, 65, 85, 0.6);
+  border-color: rgba(71, 85, 105, 0.5);
+  transform: translateY(-1px);
+}
+
+.stat-icon {
+  color: #60a5fa;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-item span {
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Profile Follow Button */
 .profile-follow-btn {
   padding: 0.875rem 2rem;
   border-radius: 0.75rem;
@@ -1047,6 +1118,7 @@ button:active {
   border-color: rgba(220, 38, 38, 0.5);
 }
 
+/* User Profile Recipes */
 .user-profile-recipes {
   margin-top: 2rem;
 }

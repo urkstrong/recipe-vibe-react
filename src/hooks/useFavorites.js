@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db } from '../services/firebase';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, getDoc, getDocs, query, collectionGroup, where } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, getDoc, getDocs, query, collectionGroup } from 'firebase/firestore';
 
 const useFavorites = (userId) => {
     const [favorites, setFavorites] = useState([]);

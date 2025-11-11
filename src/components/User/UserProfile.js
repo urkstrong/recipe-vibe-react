@@ -108,17 +108,16 @@ const UserProfile = () => {
                     <p>{profileUser.email}</p>
                     <div className="user-profile-stats">
                         <span className="stat-item">
-                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" className="stat-icon">
-                                <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
-                                <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16" className="stat-icon">
+                                <path d="M3 2.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-1zm0 3a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-1z"/>
                             </svg>
-                            {recipes.length} {recipes.length === 1 ? 'Recipe' : 'Recipes'}
+                            <span>{recipes.length} {recipes.length === 1 ? 'Recipe' : 'Recipes'}</span>
                         </span>
                         <span className="stat-item">
-                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="stat-icon">
-                                <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16" className="stat-icon">
+                                <path fillRule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
                             </svg>
-                            {totalFavoritesReceived} {totalFavoritesReceived === 1 ? 'Favorite' : 'Favorites'}
+                            <span>{totalFavoritesReceived} {totalFavoritesReceived === 1 ? 'Favorite' : 'Favorites'}</span>
                         </span>
                     </div>
                 </div>
