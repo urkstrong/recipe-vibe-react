@@ -1364,3 +1364,134 @@ header .container > div {
     min-width: 38px;
   }
 }
+
+/* ===== Favorite Button Styling ===== */
+
+.favorite-btn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  transition: all 0.2s ease;
+}
+
+.favorite-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: scale(1.1);
+}
+
+.favorite-btn.favorited {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+  animation: heartPulse 0.3s ease-out;
+}
+
+.favorite-btn.favorited:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+@keyframes heartPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Make favorite button always visible on mobile */
+@media (max-width: 768px) {
+  .recipe-card .favorite-btn {
+    opacity: 1 !important;
+  }
+}
+
+/* ===== Recipe Card Favorite Button (Top Left) ===== */
+
+.recipe-favorite-btn {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.recipe-favorite-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.recipe-favorite-btn.favorited {
+  background: rgba(239, 68, 68, 0.9);
+  border-color: rgba(255, 255, 255, 0.6);
+  animation: heartPulse 0.3s ease-out;
+}
+
+.recipe-favorite-btn.favorited:hover {
+  background: rgba(220, 38, 38, 0.95);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.recipe-favorite-btn.favorited svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes heartPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Make sure favorite button is always visible */
+.recipe-card .recipe-favorite-btn {
+  opacity: 1;
+}
+
+/* Add subtle hover effect on recipe card when favorite button is hovered */
+.recipe-card:hover .recipe-favorite-btn:not(.favorited) {
+  border-color: rgba(239, 68, 68, 0.6);
+}
+
+/* Favorite count badge */
+.favorite-count-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  min-width: 1.25rem;
+  text-align: center;
+  line-height: 1;
+}
+
+.recipe-favorite-btn.favorited .favorite-count-badge {
+  color: white;
+}
+
+/* Make sure the badge is always white regardless of button state */
+.recipe-favorite-btn .favorite-count-badge {
+  color: white !important;
+}

@@ -7,6 +7,7 @@ A modern, full-featured recipe management application built with React and Fireb
 ### Core Features
 - **Google Authentication**: Secure sign-in with Google accounts
 - **Real-time Recipe Management**: Add, edit, and delete recipes with instant updates
+- **Recipe Images**: Upload and display recipe photos with image compression
 - **Inline Editing**: Edit recipes directly within recipe cards
 - **Auto-expanding Text Areas**: Dynamic text fields that resize automatically
 - **Responsive Design**: Optimized for desktop, tablet, and mobile devices
@@ -15,6 +16,11 @@ A modern, full-featured recipe management application built with React and Fireb
 - **User Discovery**: Browse and connect with other food enthusiasts
 - **Follow System**: Follow users to stay updated with their recipes
 - **User Profiles**: View detailed profiles with recipe collections
+- **Favorites System**: 
+  - Favorite any recipe with a heart icon
+  - View all favorites in dedicated "My Favorites" tab
+  - Public favorites visible on user profiles
+  - Real-time synchronization across the app
 - **Profile Customization**: 
   - Editable display name with real-time updates
   - Custom profile photo upload with automatic cleanup
@@ -26,8 +32,9 @@ A modern, full-featured recipe management application built with React and Fireb
   - Project-wide limit tracking (5GB free tier)
   - Automatic old photo cleanup (keeps 5 most recent)
   - Storage recalculation utility
-- **Tabbed Interface**: Clean organization across Add Recipe, My Recipes, and Discover Users
-- **Real-time Synchronization**: Profile updates propagate to all followers instantly
+- **Image Compression**: Automatic compression for recipe and profile photos
+- **Tabbed Interface**: Clean organization across Add Recipe, My Recipes, My Favorites, and Discover Users
+- **Real-time Synchronization**: Profile and favorites updates propagate instantly
 
 ## 🛠️ Technology Stack
 
@@ -192,6 +199,10 @@ service firebase.storage {
    - Browse users in "Discover Users" tab
    - Click "Follow" to connect
    - Click user card to view their recipe collection
+6. **Favorites**:
+   - Click heart icon on any recipe to add to favorites
+   - View all favorite recipes in "My Favorites" tab
+   - Favorite status updates in real-time
 
 ## 🎨 Key Features Details
 
@@ -212,6 +223,11 @@ service firebase.storage {
 - Profile synchronization across all followers
 - User-specific recipe collections
 - Follow/unfollow functionality
+
+### Favorites System
+- Add or remove favorites with a single click
+- View all favorites in a dedicated tab
+- Real-time sync of favorite recipes across devices
 
 ## 🚀 Deployment
 

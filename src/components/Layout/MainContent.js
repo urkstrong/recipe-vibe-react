@@ -5,9 +5,13 @@ import AddRecipeForm from '../Recipe/AddRecipeForm';
 import UsersList from '../User/UsersList';
 import Tabs from '../UI/Tabs';
 import GoogleSignIn from '../Auth/GoogleSignIn';
+import useFavorites from '../../hooks/useFavorites';
+import RecipeCard from '../Recipe/RecipeCard';
+import LoadingState from '../UI/LoadingState';
 
 const MainContent = () => {
     const { user } = useAuth();
+    const { favoriteRecipes, loading: favoritesLoading } = useFavorites(user?.uid);
 
     if (!user) {
         return (
@@ -63,6 +67,52 @@ const MainContent = () => {
                     </div>
                     <div className="max-w-6xl mx-auto">
                         <RecipeList />
+                    </div>
+                </div>
+            )
+        },
+        {
+            label: 'My Favorites',
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+            ),
+            content: (
+                <div>
+                    <div className="mb-8 text-center">
+                        <h2 className="text-3xl font-bold text-white mb-4 high-contrast-text">Your Favorite Recipes</h2>
+                        <p className="text-slate-400 text-lg">Recipes you've saved from the community</p>
+                    </div>
+                    <div className="max-w-6xl mx-auto">
+                        {favoritesLoading ? (
+                            <LoadingState />
+                        ) : favoriteRecipes.length === 0 ? (
+                            <div className="text-center p-12">
+                                <div className="mx-auto h-24 w-24 text-slate-500 mb-6">
+                                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-full h-full">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold text-slate-300 mb-2">No Favorites Yet</h3>
+                                <p className="text-slate-500 max-w-sm mx-auto leading-relaxed">
+                                    Start exploring other users' recipes and add your favorites!
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="recipe-grid">
+                                {favoriteRecipes.map(recipe => (
+                                    <RecipeCard
+                                        key={recipe.id}
+                                        recipe={recipe}
+                                        showFavorite={true}
+                                        recipeOwnerId={recipe.ownerId}
+                                        ownerName={recipe.ownerName}
+                                        readOnly={true}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )

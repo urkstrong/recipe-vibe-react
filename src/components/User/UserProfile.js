@@ -6,6 +6,8 @@ import useUsers from '../../hooks/useUsers';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import LoadingState from '../UI/LoadingState';
+import RecipeCard from '../Recipe/RecipeCard';
+import useFavorites from '../../hooks/useFavorites';
 
 const UserProfile = () => {
     const { userId } = useParams();
@@ -13,8 +15,10 @@ const UserProfile = () => {
     const { user: currentUser } = useAuth();
     const { recipes, loading: recipesLoading } = useUserRecipes(userId);
     const { following, followUser, unfollowUser } = useUsers(currentUser?.uid);
+    const { favoriteRecipes: userFavorites, loading: favoritesLoading, getUserTotalFavorites } = useFavorites(userId);
     const [profileUser, setProfileUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [totalFavoritesReceived, setTotalFavoritesReceived] = useState(0);
 
     const isFollowing = following.includes(userId);
     const isOwnProfile = currentUser?.uid === userId;
@@ -46,6 +50,16 @@ const UserProfile = () => {
 
         fetchUserProfile();
     }, [userId]);
+
+    useEffect(() => {
+        const loadTotalFavorites = async () => {
+            if (userId && getUserTotalFavorites) {
+                const total = await getUserTotalFavorites(userId);
+                setTotalFavoritesReceived(total);
+            }
+        };
+        loadTotalFavorites();
+    }, [userId, getUserTotalFavorites]);
 
     const handleToggleFollow = () => {
         if (isFollowing) {
@@ -93,7 +107,19 @@ const UserProfile = () => {
                     <h1>{profileUser.displayName || 'Anonymous User'}</h1>
                     <p>{profileUser.email}</p>
                     <div className="user-profile-stats">
-                        <span>{recipes.length} {recipes.length === 1 ? 'Recipe' : 'Recipes'}</span>
+                        <span className="stat-item">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" className="stat-icon">
+                                <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
+                            </svg>
+                            {recipes.length} {recipes.length === 1 ? 'Recipe' : 'Recipes'}
+                        </span>
+                        <span className="stat-item">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" className="stat-icon">
+                                <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            {totalFavoritesReceived} {totalFavoritesReceived === 1 ? 'Favorite' : 'Favorites'}
+                        </span>
                     </div>
                 </div>
                 {!isOwnProfile && (
@@ -118,39 +144,45 @@ const UserProfile = () => {
                 ) : (
                     <div className="recipe-grid">
                         {recipes.map(recipe => (
-                            <div key={recipe.id} className="recipe-card view-only">
-                                {recipe.imageUrl && (
-                                    <div style={{ marginBottom: '1rem', borderRadius: '0.75rem', overflow: 'hidden' }}>
-                                        <img 
-                                            src={recipe.imageUrl} 
-                                            alt={recipe.name}
-                                            style={{
-                                                width: '100%',
-                                                height: '200px',
-                                                objectFit: 'cover',
-                                                display: 'block'
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                                <h3 className="text-xl font-bold text-white mb-4">{recipe.name}</h3>
-                                <div className="mb-4">
-                                    <h4 className="text-xs font-semibold text-blue-400 mb-2 uppercase tracking-wide">Ingredients</h4>
-                                    <p className="text-slate-300 text-sm leading-relaxed">
-                                        {recipe.ingredients}
-                                    </p>
-                                </div>
-                                <div>
-                                    <h4 className="text-xs font-semibold text-blue-400 mb-2 uppercase tracking-wide">Instructions</h4>
-                                    <p className="text-slate-300 text-sm leading-relaxed">
-                                        {recipe.instructions}
-                                    </p>
-                                </div>
-                            </div>
+                            <RecipeCard
+                                key={recipe.id}
+                                recipe={recipe}
+                                showFavorite={true}
+                                recipeOwnerId={userId}
+                                ownerName={profileUser.displayName}
+                                readOnly={!isOwnProfile}
+                                onDelete={isOwnProfile ? undefined : undefined}
+                                onUpdate={isOwnProfile ? undefined : undefined}
+                            />
                         ))}
                     </div>
                 )}
             </div>
+
+            {userFavorites.length > 0 && (
+                <div className="user-profile-recipes" style={{ marginTop: '3rem' }}>
+                    <h2 className="text-2xl font-bold text-white mb-6">
+                        {isOwnProfile ? 'Your Favorites' : `${profileUser.displayName}'s Favorites`}
+                    </h2>
+                    
+                    {favoritesLoading ? (
+                        <LoadingState />
+                    ) : (
+                        <div className="recipe-grid">
+                            {userFavorites.map(recipe => (
+                                <RecipeCard
+                                    key={recipe.id}
+                                    recipe={recipe}
+                                    showFavorite={true}
+                                    recipeOwnerId={recipe.ownerId}
+                                    ownerName={recipe.ownerName}
+                                    readOnly={true}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

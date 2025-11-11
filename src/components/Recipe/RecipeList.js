@@ -41,7 +41,15 @@ const RecipeList = () => {
     return (
         <div className="recipe-grid">
             {recipes.map(recipe => (
-                <RecipeCard key={recipe.id} recipe={recipe} onDelete={deleteRecipe} onUpdate={updateRecipe} />
+                <RecipeCard 
+                    key={recipe.id} 
+                    recipe={recipe} 
+                    onDelete={deleteRecipe} 
+                    onUpdate={updateRecipe}
+                    showFavorite={true}
+                    recipeOwnerId={user?.uid}
+                    ownerName={user?.displayName}
+                />
             ))}
         </div>
     );

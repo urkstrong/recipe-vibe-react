@@ -4,10 +4,12 @@ import { storage } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { checkUploadQuota, updateProjectStorage, deleteRecipeImage } from '../../utils/storageQuota';
 import { compressRecipeImage } from '../../utils/imageCompression';
+import useFavorites from '../../hooks/useFavorites';
 
-const RecipeCard = ({ recipe, onDelete, onUpdate }) => {
+const RecipeCard = ({ recipe, onDelete, onUpdate, showFavorite = true, recipeOwnerId, ownerName, readOnly = false }) => {
     const { id, name, ingredients, instructions, imageUrl } = recipe;
     const { user } = useAuth();
+    const { toggleFavorite, isFavorited, getRecipeFavoriteCount } = useFavorites(user?.uid);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState(name);
@@ -18,6 +20,7 @@ const RecipeCard = ({ recipe, onDelete, onUpdate }) => {
     const [editImagePreview, setEditImagePreview] = useState(imageUrl);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [uploadError, setUploadError] = useState('');
+    const [favoriteCount, setFavoriteCount] = useState(0);
     const ingredientsTextareaRef = useRef(null);
     const instructionsTextareaRef = useRef(null);
     const editFileInputRef = useRef(null);
@@ -197,10 +200,33 @@ const RecipeCard = ({ recipe, onDelete, onUpdate }) => {
         }
     }, [isEditing]);
 
+    // Load favorite count on mount and when recipe changes
+    useEffect(() => {
+        const loadFavoriteCount = async () => {
+            if (recipeOwnerId && id && getRecipeFavoriteCount) {
+                const count = await getRecipeFavoriteCount(id, recipeOwnerId);
+                setFavoriteCount(count);
+            }
+        };
+        loadFavoriteCount();
+    }, [id, recipeOwnerId, getRecipeFavoriteCount]);
+
+    const handleFavoriteClick = async (e) => {
+        e.stopPropagation();
+        if (showFavorite && recipeOwnerId) {
+            await toggleFavorite(id, recipeOwnerId, ownerName);
+            // Refresh count after toggle
+            if (getRecipeFavoriteCount) {
+                const count = await getRecipeFavoriteCount(id, recipeOwnerId);
+                setFavoriteCount(count);
+            }
+        }
+    };
+
     return (
         <>
-            <div className="recipe-card group">
-                {/* Image Section - Show in both view and edit modes */}
+            <div className={`recipe-card group ${readOnly ? 'view-only' : ''}`}>
+                {/* Image Section with Favorite Button */}
                 {isEditing ? (
                     <div style={{ marginBottom: '1rem' }}>
                         {editImagePreview ? (
@@ -310,8 +336,8 @@ const RecipeCard = ({ recipe, onDelete, onUpdate }) => {
                         )}
                     </div>
                 ) : (
-                    imageUrl && (
-                        <div style={{ marginBottom: '1rem', borderRadius: '0.75rem', overflow: 'hidden' }}>
+                    <div style={{ position: 'relative', marginBottom: '1rem', borderRadius: '0.75rem', overflow: 'hidden' }}>
+                        {imageUrl ? (
                             <img 
                                 src={imageUrl} 
                                 alt={name}
@@ -322,8 +348,38 @@ const RecipeCard = ({ recipe, onDelete, onUpdate }) => {
                                     display: 'block'
                                 }}
                             />
-                        </div>
-                    )
+                        ) : (
+                            <div style={{
+                                width: '100%',
+                                height: '200px',
+                                background: 'linear-gradient(135deg, rgba(51, 65, 85, 0.5), rgba(71, 85, 105, 0.5))',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <svg width="80" height="80" fill="rgba(148, 163, 184, 0.3)" viewBox="0 0 16 16">
+                                    <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                    <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
+                                </svg>
+                            </div>
+                        )}
+                        
+                        {/* Favorite Button - Top Left */}
+                        {showFavorite && recipeOwnerId && (
+                            <button
+                                onClick={handleFavoriteClick}
+                                className={`recipe-favorite-btn ${isFavorited(id) ? 'favorited' : ''}`}
+                                title={isFavorited(id) ? 'Remove from favorites' : 'Add to favorites'}
+                            >
+                                <svg width="24" height="24" fill={isFavorited(id) ? 'currentColor' : 'none'} stroke="white" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                                {favoriteCount > 0 && (
+                                    <span className="favorite-count-badge">{favoriteCount}</span>
+                                )}
+                            </button>
+                        )}
+                    </div>
                 )}
                 
                 <div className="flex justify-between items-start mb-4">
@@ -336,86 +392,95 @@ const RecipeCard = ({ recipe, onDelete, onUpdate }) => {
                             placeholder="Recipe name..."
                         />
                     ) : (
-                        <h3 className="text-xl font-bold text-white truncate flex-1 mr-3">
-                            {name}
-                        </h3>
+                        <div className="flex-1 mr-3">
+                            <h3 className="text-xl font-bold text-white truncate">
+                                {name}
+                            </h3>
+                            {readOnly && ownerName && (
+                                <p className="text-xs text-slate-400 italic mt-1">by {ownerName}</p>
+                            )}
+                        </div>
                     )}
-                    <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-200" style={{ alignSelf: 'flex-start' }}>
-                        {isEditing ? (
+                    <div className={`flex space-x-2 ${readOnly ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-all duration-200`} style={{ alignSelf: 'flex-start' }}>
+                        {!readOnly && (
                             <>
-                                <button
-                                    onClick={handleSave}
-                                    disabled={isSubmitting}
-                                    className="edit-btn p-2 rounded-lg transition-all duration-200"
-                                    title="Save changes"
-                                    style={{ 
-                                        width: '38px', 
-                                        height: '38px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0
-                                    }}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="text-blue-400 hover:text-blue-300" viewBox="0 0 16 16">
-                                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
-                                    </svg>
-                                </button>
-                                <button
-                                    onClick={handleCancel}
-                                    className="delete-btn p-2 rounded-lg transition-all duration-200"
-                                    title="Cancel editing"
-                                    style={{ 
-                                        width: '38px', 
-                                        height: '38px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0
-                                    }}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="text-red-400 hover:text-red-300" viewBox="0 0 16 16">
-                                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                                    </svg>
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <button
-                                    onClick={handleEdit}
-                                    className="edit-btn p-2 rounded-lg transition-all duration-200"
-                                    title="Edit recipe"
-                                    style={{ 
-                                        width: '38px', 
-                                        height: '38px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0
-                                    }}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="text-blue-400 hover:text-blue-300" viewBox="0 0 16 16">
-                                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                                        <path fillRule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
-                                    </svg>
-                                </button>
-                                <button
-                                    onClick={handleDelete}
-                                    className="delete-btn p-2 rounded-lg transition-all duration-200"
-                                    title="Delete recipe"
-                                    style={{ 
-                                        width: '38px', 
-                                        height: '38px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0
-                                    }}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="text-red-400 hover:text-red-300" viewBox="0 0 16 16">
-                                        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm3 0l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm3 .5a.5.5 0 0 0-1 0v8.5a.5.5 0 0 0 1 0v-8.5Z"/>
-                                    </svg>
-                                </button>
+                                {isEditing ? (
+                                    <>
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={isSubmitting}
+                                            className="edit-btn p-2 rounded-lg transition-all duration-200"
+                                            title="Save changes"
+                                            style={{ 
+                                                width: '38px', 
+                                                height: '38px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="text-blue-400 hover:text-blue-300" viewBox="0 0 16 16">
+                                                <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={handleCancel}
+                                            className="delete-btn p-2 rounded-lg transition-all duration-200"
+                                            title="Cancel editing"
+                                            style={{ 
+                                                width: '38px', 
+                                                height: '38px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="text-red-400 hover:text-red-300" viewBox="0 0 16 16">
+                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                            </svg>
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button
+                                            onClick={handleEdit}
+                                            className="edit-btn p-2 rounded-lg transition-all duration-200"
+                                            title="Edit recipe"
+                                            style={{ 
+                                                width: '38px', 
+                                                height: '38px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="text-blue-400 hover:text-blue-300" viewBox="0 0 16 16">
+                                                <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                                <path fillRule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={handleDelete}
+                                            className="delete-btn p-2 rounded-lg transition-all duration-200"
+                                            title="Delete recipe"
+                                            style={{ 
+                                                width: '38px', 
+                                                height: '38px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" className="text-red-400 hover:text-red-300" viewBox="0 0 16 16">
+                                                <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm3 0l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm3 .5a.5.5 0 0 0-1 0v8.5a.5.5 0 0 0 1 0v-8.5Z"/>
+                                            </svg>
+                                        </button>
+                                    </>
+                                )}
                             </>
                         )}
                     </div>
