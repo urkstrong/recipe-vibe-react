@@ -9,6 +9,7 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@google/genai": "^1.29.0",
     "browser-image-compression": "^2.0.2",
     "firebase": "^11.10.0",
     "react": "^18.0.0",

@@ -8,10 +8,12 @@ import GoogleSignIn from '../Auth/GoogleSignIn';
 import useFavorites from '../../hooks/useFavorites';
 import RecipeCard from '../Recipe/RecipeCard';
 import LoadingState from '../UI/LoadingState';
+import { useNavigate } from 'react-router-dom';
 
 const MainContent = () => {
     const { user } = useAuth();
     const { favoriteRecipes, loading: favoritesLoading } = useFavorites(user?.uid);
+    const navigate = useNavigate();
 
     if (!user) {
         return (
@@ -44,7 +46,88 @@ const MainContent = () => {
                 <div>
                     <div className="mb-8 text-center">
                         <h2 className="text-3xl font-bold text-white mb-4 high-contrast-text">Create New Recipe</h2>
-                        <p className="text-slate-400 text-lg">Share your culinary creations with the world</p>
+                        <p className="text-slate-400 text-lg mb-6">Choose how you'd like to add your recipe</p>
+                        
+                        {/* Recipe Creation Options */}
+                        <div className="flex justify-center gap-4 mb-8">
+                            <button
+                                onClick={() => {
+                                    // Option already selected by default - just scroll to form
+                                    document.querySelector('.add-recipe-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}
+                                className="recipe-option-btn"
+                                style={{
+                                    padding: '1.5rem 2rem',
+                                    background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)',
+                                    border: '2px solid rgba(59, 130, 246, 0.5)',
+                                    borderRadius: '1rem',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    minWidth: '200px',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(59, 130, 246, 0.3)';
+                                    e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.8)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                    e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                                }}
+                            >
+                                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
+                                </svg>
+                                <div>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.25rem' }}>Manual Entry</div>
+                                    <div style={{ fontSize: '0.875rem', color: '#94a3b8' }}>Type your recipe details</div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => navigate('/upload-recipe')}
+                                className="recipe-option-btn"
+                                style={{
+                                    padding: '1.5rem 2rem',
+                                    background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%)',
+                                    border: '2px solid rgba(139, 92, 246, 0.5)',
+                                    borderRadius: '1rem',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '0.75rem',
+                                    minWidth: '200px',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(-4px)';
+                                    e.currentTarget.style.boxShadow = '0 10px 30px rgba(139, 92, 246, 0.3)';
+                                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.8)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                    e.currentTarget.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+                                }}
+                            >
+                                <svg width="48" height="48" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M10.5 8.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
+                                    <path d="M2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2zm.5 2a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1zm9 2.5a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"/>
+                                </svg>
+                                <div>
+                                    <div style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.25rem' }}>Photo Upload</div>
+                                    <div style={{ fontSize: '0.875rem', color: '#94a3b8' }}>Scan a recipe image</div>
+                                </div>
+                            </button>
+                        </div>
                     </div>
                     <div className="max-w-3xl mx-auto">
                         <AddRecipeForm />

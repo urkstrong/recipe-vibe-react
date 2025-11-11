@@ -33,6 +33,7 @@ A modern, full-featured recipe management application built with React and Fireb
   - Automatic old photo cleanup (keeps 5 most recent)
   - Storage recalculation utility
 - **Image Compression**: Automatic compression for recipe and profile photos
+- **Recipe Image Upload with AI Parsing**: Upload photos of written recipes and automatically extract ingredients and instructions using Google Gemini AI
 - **Tabbed Interface**: Clean organization across Add Recipe, My Recipes, My Favorites, and Discover Users
 - **Real-time Synchronization**: Profile and favorites updates propagate instantly
 
@@ -185,7 +186,10 @@ service firebase.storage {
 1. **Sign In**: Click "Continue with Google" to authenticate
 2. **Add Recipes**: 
    - Navigate to "Add Recipe" tab
+   - Choose "Manual Entry" to type recipe details directly
+   - Or choose "Photo Upload" to scan a written/printed recipe with AI parsing
    - Fill in recipe name, ingredients, and instructions
+   - Optionally add a recipe image
    - Click "Add Recipe" to save
 3. **Manage Recipes**: 
    - View all recipes in "My Recipes" tab
